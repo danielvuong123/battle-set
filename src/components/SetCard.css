@@ -1,0 +1,44 @@
+/* src/components/SetCard.css */
+
+.card {
+  background: white;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  padding: 12px;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.symbol {
+  width: 60px;
+  height: 30px;
+  fill: none;
+  stroke-width: 3;
+}
+
+/* Colors */
+.symbol.red {
+  stroke: #d33;
+}
+.symbol.green {
+  stroke: #2a8;
+}
+.symbol.purple {
+  stroke: #7a3db8;
+}
+
+/* Shading */
+.symbol.solid {
+  fill: currentColor;
+}
+
+.symbol.striped {
+  fill: url(#stripes);
+}
+
+.symbol.open {
+  fill: none;
+}
