@@ -2,9 +2,17 @@
 import type { SetCard as CardType } from '../lib/set';
 import './SetCard.css';
 
-export default function SetCard({ card }: { card: CardType }) {
+export default function SetCard({ 
+		card, 
+		onClick, 
+		selected 
+	}: { 
+		card: CardType; 
+		onClick?: () => void; 
+		selected?: boolean; 
+	}) {
   return (
-    <div className="card">
+    <div className={`card ${selected ? 'selected' : ''}`} onClick={onClick}>
       {Array.from({ length: card.number }).map((_, i) => (
         <Symbol key={i} card={card} />
       ))}

@@ -12,6 +12,11 @@
   gap: 8px;
 }
 
+.card.selected {
+  border: 3px solid #4c8bf5;
+  box-shadow: 0 0 10px rgba(76, 139, 245, 0.5);
+}
+
 .symbol {
   width: 60px;
   height: 30px;
