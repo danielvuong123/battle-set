@@ -13,7 +13,7 @@ export default function SetCard({ card }: { card: CardType }) {
 }
 
 function Symbol({ card }: { card: CardType }) {
-  const { shape, color, shading } = card;
+  const { shape, color } = card;
 
   return (
     <svg className={`symbol ${color}`} viewBox="0 0 100 40">
