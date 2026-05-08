@@ -2,7 +2,13 @@
 import type { SetCard as CardType } from '../lib/set';
 import './SetCard.css';
 
-export default function SetCard({ card, onClick, selected }: Props) {
+type SetCardProps = {
+  card: CardType;
+  onClick: () => void;
+  selected: boolean;
+};
+
+export default function SetCard({ card, onClick, selected }: SetCardProps) {
   return (
     <div className={`card ${selected ? 'selected' : ''}`} onClick={onClick}>
       <div className="symbol-row">

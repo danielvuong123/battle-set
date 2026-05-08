@@ -1,0 +1,3 @@
+Next todo:
+
+Fix the deck logic, as finding a set sometimes resets the whole board
