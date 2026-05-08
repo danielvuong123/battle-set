@@ -65,7 +65,7 @@ export default function Board() {
     }
 
     if (
-      nextDeck.length === 0 && !hasSet(nextBoard)
+      deck.length === 0 && !hasSet(board)
     ) { 
       setMessage('Game Over');
     }
