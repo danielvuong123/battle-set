@@ -1,60 +1,55 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import SetCard from './SetCard';
 import {
+  type SetCard as CardType,
   generateDeck,
   isSet,
   hasSet,
-  repairBoard,
+  ensurePlayableBoard,
 } from '../lib/set';
-
-import type { SetCard as CardType } from '../lib/set';
 
 import './Board.css';
 
+function createInitialGame(): { deck: CardType[]; board: CardType[] } {
+  let newDeck: CardType[];
+  let initialBoard: CardType[];
+
+  do {
+    newDeck = generateDeck();
+    initialBoard = newDeck.slice(0, 12);
+  } while (!hasSet(initialBoard));
+
+  return {
+    board: initialBoard,
+    deck: newDeck.slice(12),
+  };
+}
+
 export default function Board() {
-  const [deck, setDeck] = useState<CardType[]>([]);
-  const [board, setBoard] = useState<CardType[]>([]);
+  const [{ deck, board }, setGameData] = useState(createInitialGame);
   const [selected, setSelected] = useState<CardType[]>([]);
   const [score, setScore] = useState(0);
   const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    startNewGame();
-  }, []);
+  const [gameOver, setGameOver] = useState(false);
 
   function startNewGame() {
-    let newDeck: CardType[] = [];
-    let initialBoard: CardType[] = [];
-
-    do {
-      newDeck = generateDeck();
-      initialBoard = newDeck.slice(0,12);
-    } while (!hasSet(initialBoard));
-
-    let remainingDeck = newDeck.slice(12);
-
-    const repaired = repairBoard(
-      initialBoard,
-      remainingDeck
-    )
-
-    setBoard(repaired.board);
-    setDeck(repaired.deck);
+    setGameData(createInitialGame());
     setSelected([]);
     setScore(0);
     setMessage('');
+    setGameOver(false);
   }
 
   function handleCardClick(card: CardType) {
+    if (gameOver) return;
+
     let nextSelection = [...selected];
 
-    // deselect if already selected
     if (nextSelection.some(c => c.id === card.id)) {
       nextSelection = nextSelection.filter(c => c.id !== card.id);
     } else {
       if (nextSelection.length >= 3) return;
-
       nextSelection.push(card);
     }
 
@@ -63,91 +58,66 @@ export default function Board() {
     if (nextSelection.length === 3) {
       evaluateSelection(nextSelection);
     }
-
-    if (
-      deck.length === 0 && !hasSet(board)
-    ) { 
-      setMessage('Game Over');
-    }
   }
 
   function evaluateSelection(cards: CardType[]) {
-    const valid = isSet(cards);
-
-    if (valid) {
-      setScore(prev => prev + 1);
-      setMessage('SET found!');
-
-      const selectedIds = new Set(cards.map(c => c.id));
-
-      const remainingBoard = board.filter(
-        card => !selectedIds.has(card.id)
-      );
-
-      const replacementCards = deck.slice(0, 3);
-      const updatedDeck = deck.slice(3);
-
-      let nextBoard = [
-        ...remainingBoard,
-        ...replacementCards,
-      ];
-
-      let nextDeck = updatedDeck;
-
-      while (
-        !hasSet(nextBoard) && nextDeck.length >= 3
-      ) {
-        nextBoard = [
-          ...nextBoard,
-          ...nextDeck.slice(0,3),
-        ];
-      }
-
-      nextDeck = nextDeck.slice(3);
-
-      const repaired = repairBoard(
-        nextBoard,
-        nextDeck
-      );
-
-      setBoard(repaired.board);
-      setDeck(repaired.deck);
-    } else {
+    if (!isSet(cards)) {
       setMessage('Not a set!');
+      setTimeout(() => {
+        setSelected([]);
+        setMessage('');
+      }, 1000);
+      return;
     }
 
-    setTimeout(() => {
-      setSelected([]);
-      setMessage('');
-    }, 1000);
+    setScore(prev => prev + 1);
+
+    const selectedIds = new Set(cards.map(c => c.id));
+    let updatedBoard = board.filter(card => !selectedIds.has(card.id));
+    let updatedDeck = [...deck];
+
+    if (updatedBoard.length < 12 && updatedDeck.length > 0) {
+      updatedBoard.push(
+        ...updatedDeck.splice(0, 12 - updatedBoard.length)
+      );
+    }
+
+    const result = ensurePlayableBoard(updatedBoard, updatedDeck);
+    setGameData({ board: result.board, deck: result.deck });
+
+    const isGameOver = result.deck.length === 0 && !hasSet(result.board);
+
+    if (isGameOver) {
+      setGameOver(true);
+      setMessage('Game Over');
+      setTimeout(() => setSelected([]), 1000);
+    } else {
+      setMessage('SET found!');
+      setTimeout(() => {
+        setSelected([]);
+        setMessage('');
+      }, 1000);
+    }
   }
 
-  console.log("board:",board);
   return (
     <div>
       <div className="game-header">
         <h2>Score: {score}</h2>
-
-        <button onClick={startNewGame}>
-          New Game
-        </button>
+        <button onClick={startNewGame}>New Game</button>
       </div>
 
       {message && (
-        <div className="message">
-          {message}
-        </div>
+        <div className="message">{message}</div>
       )}
 
       <div className="board">
-        {(board ?? []).map(card => (
+        {board.map(card => (
           <SetCard
             key={card.id}
             card={card}
             onClick={() => handleCardClick(card)}
-            selected={selected.some(
-              c => c.id === card.id
-            )}
+            selected={selected.some(c => c.id === card.id)}
           />
         ))}
       </div>

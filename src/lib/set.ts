@@ -136,21 +136,11 @@ export function repairBoard(
     return replacement;
   });
 
-  // ensure board has at least one set
-  while (
-    !hasSet(nextBoard) &&
-    nextDeck.length >= 3
-  ) {
-    nextBoard.push(
-      ...nextDeck.splice(0, 3)
-    );
+    return {
+      board: nextBoard,
+      deck: nextDeck,
+    };
   }
-
-  return {
-    board: nextBoard,
-    deck: nextDeck,
-  };
-}
 
 export function validateBoard(
   board: SetCard[]
@@ -166,4 +156,27 @@ export function validateBoard(
       'Board contains no valid sets'
     );
   }
+}
+
+export function ensurePlayableBoard(
+  board: SetCard[],
+  deck: SetCard[]
+): {
+  board: SetCard[];
+  deck: SetCard[];
+} {
+  let nextBoard = [...board];
+  let nextDeck = [...deck];
+
+  while (
+    !hasSet(nextBoard) &&
+    nextDeck.length >= 3
+  ) {
+    nextBoard.push(...nextDeck.splice(0, 3));
+  }
+
+  return {
+    board: nextBoard,
+    deck: nextDeck,
+  };
 }
