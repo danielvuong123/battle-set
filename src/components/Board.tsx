@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import SetCard from './SetCard';
 import {
@@ -6,10 +6,18 @@ import {
   generateDeck,
   isSet,
   hasSet,
+  findSets,
   ensurePlayableBoard,
+  shuffle,
 } from '../lib/set';
 
 import './Board.css';
+
+const COLOR_HEX: Record<CardType['color'], string> = {
+  red: '#d33',
+  green: '#2a8',
+  purple: '#7a3db8',
+};
 
 function createInitialGame(): { deck: CardType[]; board: CardType[] } {
   let newDeck: CardType[];
@@ -26,12 +34,65 @@ function createInitialGame(): { deck: CardType[]; board: CardType[] } {
   };
 }
 
+function MiniCard({ card }: { card: CardType }) {
+  const hex = COLOR_HEX[card.color];
+  const patternId = `mini-striped-${card.color}`;
+  const fill =
+    card.shading === 'solid' ? hex :
+    card.shading === 'striped' ? `url(#${patternId})` :
+    'white';
+
+  return (
+    <div className="mini-card">
+      {Array.from({ length: card.number }).map((_, i) => (
+        <svg key={i} className="mini-symbol" viewBox="0 0 100 200" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id={patternId} patternUnits="userSpaceOnUse" width="8" height="8">
+              <line x1="0" y1="0" x2="0" y2="8" stroke={hex} strokeWidth="3" />
+            </pattern>
+          </defs>
+          {card.shape === 'oval' && (
+            <ellipse cx="50" cy="100" rx="35" ry="85" fill={fill} stroke={hex} strokeWidth="3" />
+          )}
+          {card.shape === 'diamond' && (
+            <polygon points="50,0 100,100 50,200 0,100" fill={fill} stroke={hex} strokeWidth="3" />
+          )}
+          {card.shape === 'squiggle' && (
+            <path
+              d="M50 0 C 20 40, 20 60, 50 100 C 80 140, 80 160, 50 200 C 20 160, 20 140, 50 100 C 80 60, 80 40, 50 0"
+              fill={fill}
+              stroke={hex}
+              strokeWidth="3"
+            />
+          )}
+        </svg>
+      ))}
+    </div>
+  );
+}
+
 export default function Board() {
   const [{ deck, board }, setGameData] = useState(createInitialGame);
   const [selected, setSelected] = useState<CardType[]>([]);
   const [score, setScore] = useState(0);
   const [message, setMessage] = useState('');
   const [gameOver, setGameOver] = useState(false);
+  const [foundSets, setFoundSets] = useState<CardType[][]>([]);
+  const [animatingOut, setAnimatingOut] = useState<string[]>([]);
+  const [hinted, setHinted] = useState<string[]>([]);
+  const historyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (historyRef.current) {
+      historyRef.current.scrollTop = historyRef.current.scrollHeight;
+    }
+  }, [foundSets]);
+
+  function shuffleBoard() {
+    if (animatingOut.length > 0) return;
+    setHinted([]);
+    setGameData(prev => ({ ...prev, board: shuffle(prev.board) }));
+  }
 
   function startNewGame() {
     setGameData(createInitialGame());
@@ -39,10 +100,20 @@ export default function Board() {
     setScore(0);
     setMessage('');
     setGameOver(false);
+    setFoundSets([]);
+    setAnimatingOut([]);
+    setHinted([]);
+  }
+
+  function handleHint() {
+    const sets = findSets(board);
+    if (sets.length === 0) return;
+    const pick = sets[Math.floor(Math.random() * sets.length)];
+    setHinted([pick[0].id, pick[1].id]);
   }
 
   function handleCardClick(card: CardType) {
-    if (gameOver) return;
+    if (gameOver || animatingOut.length > 0) return;
 
     let nextSelection = [...selected];
 
@@ -61,6 +132,7 @@ export default function Board() {
   }
 
   function evaluateSelection(cards: CardType[]) {
+    setHinted([]);
     if (!isSet(cards)) {
       setMessage('Not a set!');
       setTimeout(() => {
@@ -71,45 +143,54 @@ export default function Board() {
     }
 
     setScore(prev => prev + 1);
+    setFoundSets(prev => [...prev, cards]);
+    setAnimatingOut(cards.map(c => c.id));
+    setMessage('SET found!');
 
-    const selectedIds = new Set(cards.map(c => c.id));
-    let updatedBoard = board.filter(card => !selectedIds.has(card.id));
-    let updatedDeck = [...deck];
+    setTimeout(() => {
+      const selectedIds = new Set(cards.map(c => c.id));
+      let updatedDeck = [...deck];
 
-    if (updatedBoard.length < 12 && updatedDeck.length > 0) {
-      updatedBoard.push(
-        ...updatedDeck.splice(0, 12 - updatedBoard.length)
-      );
-    }
+      // Replace each found card in its exact position; drop the slot only if deck is exhausted
+      const updatedBoard = board
+        .map(card => {
+          if (!selectedIds.has(card.id)) return card;
+          return updatedDeck.shift() ?? null;
+        })
+        .filter((c): c is CardType => c !== null);
 
-    const result = ensurePlayableBoard(updatedBoard, updatedDeck);
-    setGameData({ board: result.board, deck: result.deck });
+      const result = ensurePlayableBoard(updatedBoard, updatedDeck);
+      setGameData({ board: result.board, deck: result.deck });
+      setAnimatingOut([]);
+      setSelected([]);
 
-    const isGameOver = result.deck.length === 0 && !hasSet(result.board);
-
-    if (isGameOver) {
-      setGameOver(true);
-      setMessage('Game Over');
-      setTimeout(() => setSelected([]), 1000);
-    } else {
-      setMessage('SET found!');
-      setTimeout(() => {
-        setSelected([]);
+      const isGameOver = result.deck.length === 0 && !hasSet(result.board);
+      if (isGameOver) {
+        setGameOver(true);
+        setMessage('Game Over');
+      } else {
         setMessage('');
-      }, 1000);
-    }
+      }
+    }, 500);
   }
 
   return (
     <div>
       <div className="game-header">
-        <h2>Score: {score}</h2>
-        <button onClick={startNewGame}>New Game</button>
+        <div className="game-stats">
+          <h2>Score: {score}</h2>
+          <span className="deck-counter">Deck: {deck.length}</span>
+        </div>
+        <div className="header-buttons">
+          <button onClick={handleHint} disabled={gameOver || animatingOut.length > 0}>Hint</button>
+          <button onClick={shuffleBoard} disabled={gameOver || animatingOut.length > 0}>Shuffle</button>
+          <button onClick={startNewGame}>New Game</button>
+        </div>
       </div>
 
-      {message && (
-        <div className="message">{message}</div>
-      )}
+      <div className="message-area">
+        {message && <div className="message">{message}</div>}
+      </div>
 
       <div className="board">
         {board.map(card => (
@@ -118,9 +199,23 @@ export default function Board() {
             card={card}
             onClick={() => handleCardClick(card)}
             selected={selected.some(c => c.id === card.id)}
+            animating={animatingOut.includes(card.id)}
+            hinted={hinted.includes(card.id)}
           />
         ))}
       </div>
+
+      {foundSets.length > 0 && (
+        <div className="found-set-history" ref={historyRef}>
+          {foundSets.map((set, i) => (
+            <div key={i} className="found-set-entry">
+              {set.map(card => (
+                <MiniCard key={card.id} card={card} />
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

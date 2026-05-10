@@ -6,11 +6,16 @@ type SetCardProps = {
   card: CardType;
   onClick: () => void;
   selected: boolean;
+  animating?: boolean;
+  hinted?: boolean;
 };
 
-export default function SetCard({ card, onClick, selected }: SetCardProps) {
+export default function SetCard({ card, onClick, selected, animating, hinted }: SetCardProps) {
   return (
-    <div className={`card ${selected ? 'selected' : ''}`} onClick={onClick}>
+    <div
+      className={`card${selected ? ' selected' : ''}${animating ? ' animating-out' : ''}${hinted ? ' hinted' : ''}`}
+      onClick={onClick}
+    >
       <div className="symbol-row">
         {Array.from({ length: card.number }).map((_, i) => (
           <Symbol key={i} card={card} />
