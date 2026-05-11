@@ -156,10 +156,12 @@ export default function Board({ onMenu, settings = DEFAULT_SETTINGS }: BoardProp
     setTimeout(() => {
       const selectedIds = new Set(cards.map(c => c.id));
       let updatedDeck = [...deck];
+      const isExpanded = board.length > 12;
 
       const updatedBoard = board
         .map(card => {
           if (!selectedIds.has(card.id)) return card;
+          if (isExpanded) return null;
           return updatedDeck.shift() ?? null;
         })
         .filter((c): c is CardType => c !== null);
