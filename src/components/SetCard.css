@@ -4,19 +4,17 @@
   background: white;
   border: 2px solid #ccc;
   border-radius: 12px;
-  padding: 0px;
-  width: 180px;
-  height: 120px;
+  padding: 0;
+  width: 100%;
+  aspect-ratio: 3 / 2;
 
   display: flex;
   justify-content: center;
   align-items: center;
 
   box-sizing: border-box;
-
   cursor: pointer;
   transition: all 0.2s ease;
-
   overflow: hidden;
 }
 
@@ -54,10 +52,8 @@
 .symbol {
   width: 40px;
   height: 80px;
-
   flex: 0 0 auto;
   display: block;
-
   flex-shrink: 0;
 }
 
@@ -65,39 +61,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-
   gap: 4px;
-}
-
-/* Colors */
-.symbol.red {
-  stroke: #d33;
-}
-.symbol.green {
-  stroke: #2a8;
-}
-.symbol.purple {
-  stroke: #7a3db8;
-}
-
-/* Shading */
-.symbol.solid {
-  fill: currentColor;
-}
-
-.symbol.striped {
-  fill: url(#stripes);
-}
-
-.symbol.open {
-  fill: none;
 }
 
 @media (max-width: 640px) {
   .card {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 3 / 2;
     border-radius: 8px;
   }
 

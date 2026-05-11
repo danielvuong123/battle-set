@@ -1,0 +1,166 @@
+.settings-page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0 8px;
+}
+
+.settings-header h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.settings-content {
+  margin-top: 8px;
+}
+
+.settings-section {
+  margin-bottom: 44px;
+}
+
+.settings-section h2 {
+  font-size: 20px;
+  margin: 0 0 6px;
+  color: var(--text-h);
+}
+
+.settings-section p {
+  font-size: 14px;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+/* ── Color picker ── */
+.color-slots {
+  display: flex;
+  gap: 20px;
+}
+
+.color-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-slot-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.color-slot-preview {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  flex-shrink: 0;
+}
+
+.color-palette {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+/* Override global button styles for swatches */
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  padding: 0;
+  min-height: unset;
+  border: 2px solid transparent;
+  box-shadow: none;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.color-swatch:hover:not(:disabled) {
+  transform: scale(1.15);
+  border-color: var(--text-h);
+}
+
+.color-swatch.active {
+  border-color: var(--text-h);
+  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--text-h);
+}
+
+/* ── Layout picker ── */
+.layout-options {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Override global button styles for layout options */
+.layout-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--code-bg);
+  border: 2px solid transparent;
+  color: var(--text);
+  min-height: unset;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.layout-option:hover:not(:disabled) {
+  border-color: var(--accent-border);
+}
+
+.layout-option.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.layout-preview {
+  display: grid;
+  gap: 3px;
+  width: 72px;
+  height: 54px;
+}
+
+.layout-cell {
+  background: var(--accent);
+  border-radius: 2px;
+  opacity: 0.25;
+}
+
+.layout-option.active .layout-cell {
+  opacity: 0.7;
+}
+
+.layout-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+@media (max-width: 640px) {
+  .color-slots {
+    gap: 12px;
+  }
+
+  .layout-options {
+    gap: 8px;
+  }
+
+  .layout-option {
+    padding: 10px 12px;
+  }
+
+  .layout-preview {
+    width: 56px;
+    height: 42px;
+  }
+}

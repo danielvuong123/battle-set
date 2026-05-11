@@ -1,0 +1,178 @@
+.how-to-play {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+.htp-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0 8px;
+}
+
+.htp-header h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.htp-content {
+  margin-top: 8px;
+}
+
+.htp-section {
+  margin-bottom: 44px;
+}
+
+.htp-section h2 {
+  font-size: 20px;
+  margin: 0 0 10px;
+  color: var(--text-h);
+}
+
+.htp-section p {
+  color: var(--text);
+  line-height: 1.65;
+  margin: 0 0 16px;
+}
+
+.htp-attributes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.htp-attr {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.htp-attr strong {
+  color: var(--text-h);
+  font-size: 14px;
+}
+
+.htp-attr span {
+  color: var(--text);
+  font-size: 13px;
+}
+
+/* Card examples */
+.example-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.example-cards {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.example-card {
+  width: 90px;
+  height: 62px;
+  background: white;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.example-symbol-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.example-symbol {
+  width: 22px;
+  height: 44px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.example-label {
+  font-size: 13px;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.example-label.valid {
+  color: #2a8;
+}
+
+.example-label.invalid {
+  color: #d33;
+}
+
+/* Steps */
+.htp-steps {
+  padding-left: 22px;
+  margin: 0;
+  color: var(--text);
+  line-height: 1.5;
+  text-align: left;
+}
+
+.htp-steps li {
+  margin-bottom: 8px;
+}
+
+/* Controls */
+.htp-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.htp-control {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.htp-control strong {
+  color: var(--accent);
+  font-size: 14px;
+  min-width: 72px;
+  flex-shrink: 0;
+}
+
+.htp-control span {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .htp-attributes {
+    grid-template-columns: 1fr;
+  }
+
+  .example-card {
+    width: 76px;
+    height: 52px;
+  }
+
+  .example-symbol {
+    width: 18px;
+    height: 36px;
+  }
+}

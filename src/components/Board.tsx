@@ -10,14 +10,11 @@ import {
   ensurePlayableBoard,
   shuffle,
 } from '../lib/set';
+import { type Settings, DEFAULT_SETTINGS } from '../types';
 
 import './Board.css';
 
-const COLOR_HEX: Record<CardType['color'], string> = {
-  red: '#d33',
-  green: '#2a8',
-  purple: '#7a3db8',
-};
+const COLOR_NAMES: CardType['color'][] = ['red', 'green', 'purple'];
 
 function createInitialGame(): { deck: CardType[]; board: CardType[] } {
   let newDeck: CardType[];
@@ -34,8 +31,8 @@ function createInitialGame(): { deck: CardType[]; board: CardType[] } {
   };
 }
 
-function MiniCard({ card }: { card: CardType }) {
-  const hex = COLOR_HEX[card.color];
+function MiniCard({ card, colorMap }: { card: CardType; colorMap: Record<string, string> }) {
+  const hex = colorMap[card.color];
   const patternId = `mini-striped-${card.color}`;
   const fill =
     card.shading === 'solid' ? hex :
@@ -71,7 +68,16 @@ function MiniCard({ card }: { card: CardType }) {
   );
 }
 
-export default function Board() {
+type BoardProps = {
+  onMenu?: () => void;
+  settings?: Settings;
+};
+
+export default function Board({ onMenu, settings = DEFAULT_SETTINGS }: BoardProps) {
+  const colorMap: Record<string, string> = Object.fromEntries(
+    COLOR_NAMES.map((name, i) => [name, settings.colors[i]])
+  );
+
   const [{ deck, board }, setGameData] = useState(createInitialGame);
   const [selected, setSelected] = useState<CardType[]>([]);
   const [score, setScore] = useState(0);
@@ -151,7 +157,6 @@ export default function Board() {
       const selectedIds = new Set(cards.map(c => c.id));
       let updatedDeck = [...deck];
 
-      // Replace each found card in its exact position; drop the slot only if deck is exhausted
       const updatedBoard = board
         .map(card => {
           if (!selectedIds.has(card.id)) return card;
@@ -178,6 +183,7 @@ export default function Board() {
     <div>
       <div className="game-header">
         <div className="game-stats">
+          {onMenu && <button onClick={onMenu}>← Menu</button>}
           <h2>Score: {score}</h2>
           <span className="deck-counter">Deck: {deck.length}</span>
         </div>
@@ -192,7 +198,7 @@ export default function Board() {
         {message && <div className="message">{message}</div>}
       </div>
 
-      <div className="board">
+      <div className="board" data-layout={settings.layout}>
         {board.map(card => (
           <SetCard
             key={card.id}
@@ -201,6 +207,7 @@ export default function Board() {
             selected={selected.some(c => c.id === card.id)}
             animating={animatingOut.includes(card.id)}
             hinted={hinted.includes(card.id)}
+            colorMap={colorMap}
           />
         ))}
       </div>
@@ -210,7 +217,7 @@ export default function Board() {
           {foundSets.map((set, i) => (
             <div key={i} className="found-set-entry">
               {set.map(card => (
-                <MiniCard key={card.id} card={card} />
+                <MiniCard key={card.id} card={card} colorMap={colorMap} />
               ))}
             </div>
           ))}
