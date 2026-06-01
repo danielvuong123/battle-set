@@ -1,0 +1,69 @@
+.lobby {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.lobby-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 320px;
+}
+
+.lobby-content h1 {
+  margin: 0 0 8px;
+}
+
+.lobby-content label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+.lobby-content input {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.lobby-content button {
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.lobby-btn-primary {
+  background: #2a8;
+  color: white;
+  border: none;
+}
+
+.lobby-divider {
+  text-align: center;
+  color: #666;
+  font-size: 0.85rem;
+  margin: 4px 0;
+}
+
+.lobby-error {
+  color: #e55;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.lobby-back {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  text-align: left;
+  padding: 4px 0;
+}

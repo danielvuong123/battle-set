@@ -1,0 +1,66 @@
+.mp-my-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.mp-my-name {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.mp-my-score {
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.mp-scoreboard {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.opponent-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 6px 12px;
+  min-width: 64px;
+}
+
+.opponent-name {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.opponent-score-num {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+/* History entries with player label */
+.mp-found-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mp-history-name {
+  font-size: 0.75rem;
+  color: #888;
+  min-width: 48px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.mp-history-you {
+  color: #2a8;
+  font-weight: bold;
+}
+
+.msg-success  { color: #2a8; }
+.msg-fail     { color: #e55; }
+.msg-gameover { color: #f90; font-weight: bold; }
