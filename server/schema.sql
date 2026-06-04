@@ -27,3 +27,5 @@ CREATE TABLE IF NOT EXISTS found_sets (
   card_ids   TEXT[] NOT NULL,
   found_at   TIMESTAMPTZ DEFAULT now()
 );
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON players, rooms, room_players, found_sets TO battleset;
