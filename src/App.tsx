@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { type Settings, DEFAULT_SETTINGS } from './types';
+import { authClient, useSession } from './lib/auth';
 import Board from './components/Board';
 import Menu from './components/Menu';
 import HowToPlay from './components/HowToPlay';
@@ -7,6 +8,7 @@ import SettingsPage from './components/Settings';
 import Lobby from './components/Lobby';
 import WaitingRoom from './components/WaitingRoom';
 import MultiplayerBoard from './components/MultiplayerBoard';
+import Login from './components/Login';
 import type { MPPlayer } from './hooks/useMultiplayerGame';
 import type { SetCard } from './lib/set';
 
@@ -22,9 +24,13 @@ type RoomInfo = {
 };
 
 export default function App() {
+  const { data: session, isPending } = useSession();
   const [view, setView] = useState<View>('menu');
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [room, setRoom] = useState<RoomInfo | null>(null);
+
+  if (isPending) return null;
+  if (!session) return <Login onAuth={() => {}} />;
 
   function handleRoomReady(roomId: string, playerId: string, players: MPPlayer[], isHost: boolean) {
     setRoom({ roomId, playerId, players, isHost, initialBoard: [], initialDeckSize: 0 });
@@ -46,7 +52,7 @@ export default function App() {
   if (view === 'settings') return <SettingsPage settings={settings} onChange={setSettings} onBack={() => setView('menu')} />;
 
   if (view === 'lobby') return (
-    <Lobby onRoomReady={handleRoomReady} onBack={() => setView('menu')} />
+    <Lobby playerName={session.user.name} onRoomReady={handleRoomReady} onBack={() => setView('menu')} />
   );
 
   if (view === 'waiting-room' && room) return (
@@ -77,5 +83,7 @@ export default function App() {
     onMultiplayer={() => setView('lobby')}
     onHowToPlay={() => setView('how-to-play')}
     onSettings={() => setView('settings')}
+    onSignOut={() => authClient.signOut()}
+    userName={session.user.name}
   />;
 }

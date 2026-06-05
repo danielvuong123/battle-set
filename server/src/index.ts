@@ -1,6 +1,8 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import { toNodeHandler } from 'better-auth/node';
+import { auth } from './auth.js';
 import {
   createRoom,
   getRoom,
@@ -28,12 +30,10 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? 'http://localhost:5173,h
   .split(',')
   .map(s => s.trim());
 
-const io = new Server(httpServer, {
-  cors: {
-    origin: ALLOWED_ORIGINS,
-    methods: ['GET', 'POST'],
-  },
-});
+// Better Auth handles its own body parsing — mount before express.json()
+app.all('/api/auth/*splat', toNodeHandler(auth));
+
+app.use(express.json());
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
@@ -47,70 +47,95 @@ app.get('/leaderboard', async (_req, res) => {
   }
 });
 
+const io = new Server(httpServer, {
+  cors: {
+    origin: ALLOWED_ORIGINS,
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
+// Verify session before any socket events
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth?.token as string | undefined;
+  if (!token) return next(new Error('Unauthorized'));
+
+  try {
+    const session = await auth.api.getSession({
+      headers: new Headers({ cookie: `better-auth.session_token=${token}` }),
+    });
+    if (!session) return next(new Error('Unauthorized'));
+    socket.data.userId = session.user.id;
+    socket.data.userName = session.user.name;
+    next();
+  } catch {
+    next(new Error('Unauthorized'));
+  }
+});
+
 io.on('connection', socket => {
-  console.log(`[+] ${socket.id} connected`);
+  const userId: string = socket.data.userId;
+  const userName: string = socket.data.userName;
+  console.log(`[+] ${socket.id} connected (user: ${userName})`);
 
-  // Client sends their persistent UUID from localStorage on every connect
-  socket.on('register_player', async ({ playerId, playerName }: { playerId: string; playerName?: string }) => {
+  socket.on('register_player', async () => {
     try {
-      if (playerName) await upsertPlayer(playerId, playerName);
+      await upsertPlayer(userId, userName);
 
-      // Check if this player was mid-game when they disconnected
-      const active = await getActiveRoomForPlayer(playerId);
+      const active = await getActiveRoomForPlayer(userId);
       if (active) {
         const room = getRoom(active.roomId);
         if (room) {
-          // Find the player entry in the in-memory room and update their socket id
-          const player = room.players.get(playerId);
+          const player = room.players.get(userId);
           if (player) {
-            room.players.delete(playerId);
+            room.players.delete(userId);
             room.players.set(socket.id, { ...player, id: socket.id });
           }
           socket.join(active.roomId);
           socket.emit('rejoined', { room: getRoomSnapshot(room), playerId: socket.id });
-          console.log(`[rejoin] ${playerName ?? playerId} rejoined room ${active.roomId}`);
+          console.log(`[rejoin] ${userName} rejoined room ${active.roomId}`);
           return;
         }
       }
 
-      socket.emit('registered', { playerId });
+      socket.emit('registered', { playerId: userId });
     } catch (err) {
       console.error('[register_player]', err);
     }
   });
 
-  socket.on('create_room', async ({ playerId, playerName }: { playerId: string; playerName: string }) => {
+  socket.on('create_room', async () => {
     try {
-      await upsertPlayer(playerId, playerName);
-      const room = createRoom(socket.id, playerName);
+      await upsertPlayer(userId, userName);
+      const room = createRoom(socket.id, userName);
       await createRoomRecord(room.id);
-      await addPlayerToRoom(room.id, playerId);
+      await addPlayerToRoom(room.id, userId);
 
       socket.join(room.id);
       socket.emit('room_joined', { room: getRoomSnapshot(room), playerId: socket.id });
-      console.log(`[room] ${playerName} created room ${room.id}`);
+      console.log(`[room] ${userName} created room ${room.id}`);
     } catch (err) {
       console.error('[create_room]', err);
       socket.emit('error', { message: 'Failed to create room.' });
     }
   });
 
-  socket.on('join_room', async ({ roomId, playerId, playerName }: { roomId: string; playerId: string; playerName: string }) => {
+  socket.on('join_room', async ({ roomId }: { roomId: string }) => {
     const upperId = roomId.toUpperCase();
     try {
-      await upsertPlayer(playerId, playerName);
-      const player = joinRoom(upperId, socket.id, playerName);
+      await upsertPlayer(userId, userName);
+      const player = joinRoom(upperId, socket.id, userName);
       if (!player) {
         socket.emit('error', { message: 'Room not found or game already started.' });
         return;
       }
-      await addPlayerToRoom(upperId, playerId);
+      await addPlayerToRoom(upperId, userId);
 
       socket.join(upperId);
       const room = getRoom(upperId)!;
       socket.emit('room_joined', { room: getRoomSnapshot(room), playerId: socket.id });
       socket.to(upperId).emit('player_joined', { player });
-      console.log(`[room] ${playerName} joined room ${upperId}`);
+      console.log(`[room] ${userName} joined room ${upperId}`);
     } catch (err) {
       console.error('[join_room]', err);
       socket.emit('error', { message: 'Failed to join room.' });
@@ -135,7 +160,7 @@ io.on('connection', socket => {
     console.log(`[game] Room ${roomId} started`);
   });
 
-  socket.on('claim_set', async ({ roomId, cardIds, playerId }: { roomId: string; cardIds: string[]; playerId: string }) => {
+  socket.on('claim_set', async ({ roomId, cardIds }: { roomId: string; cardIds: string[] }) => {
     const result = claimSet(roomId, socket.id, cardIds);
     if (!result) return;
 
@@ -143,7 +168,7 @@ io.on('connection', socket => {
 
     if (result.valid) {
       try {
-        await recordFoundSet(roomId, playerId, cardIds);
+        await recordFoundSet(roomId, userId, cardIds);
       } catch (err) {
         console.error('[claim_set] db write failed', err);
       }

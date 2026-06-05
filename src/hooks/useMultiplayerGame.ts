@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { socket, getPlayerId } from './socket';
+import { socket } from './socket';
 import type { SetCard } from '../lib/set';
 
 export type MPPlayer = {
@@ -119,7 +119,7 @@ export function useMultiplayerGame(
   }, [roomId]);
 
   function claimSet(cardIds: string[]) {
-    socket.emit('claim_set', { roomId, cardIds, playerId: getPlayerId() });
+    socket.emit('claim_set', { roomId, cardIds });
   }
 
   return { game, players, lastClaim, claimSet, setPlayers };

@@ -5,9 +5,11 @@ type MenuProps = {
   onMultiplayer: () => void;
   onHowToPlay: () => void;
   onSettings: () => void;
+  onSignOut: () => void;
+  userName: string;
 };
 
-export default function Menu({ onPlay, onMultiplayer, onHowToPlay, onSettings }: MenuProps) {
+export default function Menu({ onPlay, onMultiplayer, onHowToPlay, onSettings, onSignOut, userName }: MenuProps) {
   return (
     <div className="menu">
       <div className="menu-content">
@@ -18,6 +20,10 @@ export default function Menu({ onPlay, onMultiplayer, onHowToPlay, onSettings }:
           <button className="menu-btn-primary" onClick={onMultiplayer}>Multiplayer</button>
           <button onClick={onHowToPlay}>How to Play</button>
           <button onClick={onSettings}>Settings</button>
+        </div>
+        <div className="menu-user">
+          <span>{userName}</span>
+          <button className="menu-signout" onClick={onSignOut}>Sign out</button>
         </div>
       </div>
     </div>

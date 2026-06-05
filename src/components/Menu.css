@@ -51,6 +51,28 @@
   opacity: 0.88;
 }
 
+.menu-user {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.menu-signout {
+  background: none;
+  border: 1px solid #444;
+  color: #888;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: unset;
+}
+
+.menu-signout:hover { color: #ccc; border-color: #666; }
+
 @media (max-width: 640px) {
   .menu-title {
     font-size: 72px;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { socket, getPlayerId } from '../hooks/socket';
+import { socket, connectSocket } from '../hooks/socket';
 import type { MPPlayer } from '../hooks/useMultiplayerGame';
 import './Lobby.css';
 
@@ -11,26 +11,29 @@ type RoomSnapshot = {
 };
 
 type LobbyProps = {
+  playerName: string;
   onRoomReady: (roomId: string, playerId: string, players: MPPlayer[], isHost: boolean) => void;
   onBack: () => void;
 };
 
-export default function Lobby({ onRoomReady, onBack }: LobbyProps) {
-  const [name, setName] = useState('');
+export default function Lobby({ playerName, onRoomReady, onBack }: LobbyProps) {
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState('');
   const [connecting, setConnecting] = useState(false);
 
-  function connect(action: 'create' | 'join') {
-    if (!name.trim()) { setError('Enter your name first.'); return; }
+  async function connect(action: 'create' | 'join') {
     if (action === 'join' && !joinCode.trim()) { setError('Enter a room code.'); return; }
 
     setError('');
     setConnecting(true);
 
-    const playerId = getPlayerId();
-
-    if (!socket.connected) socket.connect();
+    try {
+      await connectSocket();
+    } catch {
+      setError('Not signed in.');
+      setConnecting(false);
+      return;
+    }
 
     socket.once('room_joined', ({ room, playerId: socketId }: { room: RoomSnapshot; playerId: string }) => {
       setConnecting(false);
@@ -47,10 +50,22 @@ export default function Lobby({ onRoomReady, onBack }: LobbyProps) {
       setConnecting(false);
     });
 
-    if (action === 'create') {
-      socket.emit('create_room', { playerId, playerName: name.trim() });
-    } else {
-      socket.emit('join_room', { roomId: joinCode.trim(), playerId, playerName: name.trim() });
+    socket.once('connect', () => {
+      socket.emit('register_player');
+      if (action === 'create') {
+        socket.emit('create_room');
+      } else {
+        socket.emit('join_room', { roomId: joinCode.trim() });
+      }
+    });
+
+    if (socket.connected) {
+      socket.emit('register_player');
+      if (action === 'create') {
+        socket.emit('create_room');
+      } else {
+        socket.emit('join_room', { roomId: joinCode.trim() });
+      }
     }
   }
 
@@ -58,17 +73,7 @@ export default function Lobby({ onRoomReady, onBack }: LobbyProps) {
     <div className="lobby">
       <div className="lobby-content">
         <h1>Multiplayer</h1>
-
-        <label>
-          Your name
-          <input
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="e.g. Alex"
-            maxLength={20}
-            disabled={connecting}
-          />
-        </label>
+        <p className="lobby-playing-as">Playing as <strong>{playerName}</strong></p>
 
         <button
           className="lobby-btn-primary"
