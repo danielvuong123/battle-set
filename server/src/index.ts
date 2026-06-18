@@ -31,7 +31,7 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? 'http://localhost:5173,h
   .map(s => s.trim());
 
 // Better Auth handles its own body parsing — mount before express.json()
-app.all('/api/auth/*splat', toNodeHandler(auth));
+app.all('/api/auth/*', toNodeHandler(auth));
 
 app.use(express.json());
 
