@@ -12,10 +12,15 @@ export function useSession() {
   const [isPending, setIsPending] = useState(true);
 
   useEffect(() => {
-    authClient.getSession().then(({ data }) => {
-      setSession(data);
-      setIsPending(false);
-    });
+    authClient.getSession()
+      .then(({ data }) => {
+        setSession(data);
+        setIsPending(false);
+      })
+      .catch((err) => {
+        console.error('[auth] getSession error:', err);
+        setIsPending(false);
+      });
   }, []);
 
   return { data: session, isPending };
