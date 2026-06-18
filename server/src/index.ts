@@ -30,6 +30,22 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? 'http://localhost:5173,h
   .split(',')
   .map(s => s.trim());
 
+// CORS middleware for auth routes
+app.use((req, res, next) => {
+  const origin = req.get('origin');
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Credentials', 'true');
+  }
+  res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+  } else {
+    next();
+  }
+});
+
 // Better Auth handles its own body parsing — mount before express.json()
 app.all('/api/auth/*', toNodeHandler(auth));
 
