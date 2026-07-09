@@ -19,20 +19,45 @@ export default function Login({ onAuth }: Props) {
     setError('');
     setLoading(true);
 
-    if (mode === 'signup') {
-      const { error: err } = await authClient.signUp.email({ name, email, password });
-      if (err) { setError(err.message ?? 'Sign up failed'); setLoading(false); return; }
-    } else {
-      const { error: err } = await authClient.signIn.email({ email, password });
-      if (err) { setError(err.message ?? 'Sign in failed'); setLoading(false); return; }
-    }
+    try {
+      if (mode === 'signup') {
+        const { error: err } = await authClient.signUp.email({ name, email, password });
+        if (err) {
+          console.error('[signup error]', err);
+          setError(err.message ?? 'Failed to create account');
+          setLoading(false);
+          return;
+        }
+      } else {
+        const { error: err } = await authClient.signIn.email({ email, password });
+        if (err) {
+          console.error('[signin error]', err);
+          setError(err.message ?? 'Incorrect email or password');
+          setLoading(false);
+          return;
+        }
+      }
 
-    setLoading(false);
-    onAuth();
+      setLoading(false);
+      onAuth();
+    } catch (err) {
+      console.error('[auth error]', err);
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.';
+      setError(msg);
+      setLoading(false);
+    }
   }
 
   async function handleGoogle() {
-    await authClient.signIn.social({ provider: 'google', callbackURL: window.location.href });
+    try {
+      setError('');
+      setLoading(true);
+      await authClient.signIn.social({ provider: 'google', callbackURL: window.location.href });
+    } catch (err) {
+      console.error('[google signin error]', err);
+      setError('Google login is not configured. Please use email/password or guest login.');
+      setLoading(false);
+    }
   }
 
   async function handleGuest() {
@@ -48,11 +73,18 @@ export default function Login({ onAuth }: Props) {
         email: guestEmail,
         password: guestPassword,
       });
-      if (err) { setError(err.message ?? 'Guest login failed'); setLoading(false); return; }
+      if (err) {
+        console.error('[guest signup error]', err);
+        setError(err.message ?? 'Failed to create guest account');
+        setLoading(false);
+        return;
+      }
       setLoading(false);
       onAuth();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Guest login failed');
+      console.error('[guest login error]', err);
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.';
+      setError(msg);
       setLoading(false);
     }
   }

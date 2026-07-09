@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -9,11 +10,10 @@ const pool = new Pool({
   password: process.env.PGPASSWORD ?? '',
 });
 
+const db = drizzle(pool);
+
 export const auth = betterAuth({
-  database: {
-    db: pool,
-    type: 'pg',
-  },
+  database: db,
   baseURL: process.env.BETTER_AUTH_URL ?? 'http://localhost:3001',
   secret: process.env.BETTER_AUTH_SECRET ?? 'dev-secret-change-me',
   trustedOrigins: (process.env.ALLOWED_ORIGINS ?? 'http://localhost:5173,http://localhost:4173')
