@@ -35,6 +35,23 @@ export default function Login({ onAuth }: Props) {
     await authClient.signIn.social({ provider: 'google', callbackURL: window.location.href });
   }
 
+  async function handleGuest() {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SERVER_URL ?? 'http://localhost:3001'}/api/guest`,
+        { method: 'POST' }
+      );
+      if (!res.ok) throw new Error('Guest login failed');
+      setLoading(false);
+      onAuth();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Guest login failed');
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="login">
       <div className="login-card">
@@ -90,6 +107,12 @@ export default function Login({ onAuth }: Props) {
             {loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
           </button>
         </form>
+
+        <div className="login-divider">or</div>
+
+        <button className="login-guest" onClick={handleGuest} disabled={loading}>
+          Play as Guest
+        </button>
       </div>
     </div>
   );

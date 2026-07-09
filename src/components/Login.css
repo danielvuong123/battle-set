@@ -130,3 +130,18 @@
   margin: 0;
   text-align: center;
 }
+
+.login-guest {
+  background: var(--accent, #6c63ff);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.login-guest:hover { opacity: 0.85; }
+.login-guest:disabled { opacity: 0.5; cursor: not-allowed; }

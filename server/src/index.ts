@@ -51,6 +51,27 @@ app.all('/api/auth/*', toNodeHandler(auth));
 
 app.use(express.json());
 
+app.post('/api/guest', async (req, res) => {
+  try {
+    const guestName = `Guest_${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+    const guestEmail = `guest_${Date.now()}@battleset.local`;
+    const guestPassword = Math.random().toString(36).substring(2, 15);
+
+    const request = new Request('http://localhost/api/auth/sign-up/email', {
+      method: 'POST',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      body: JSON.stringify({ email: guestEmail, password: guestPassword, name: guestName }),
+    });
+
+    const response = await toNodeHandler(auth)(request);
+    response.headers.forEach((val, key) => res.set(key, val));
+    res.status(response.status).send(await response.text());
+  } catch (err) {
+    console.error('[guest]', err);
+    res.status(500).json({ error: 'Failed to create guest session' });
+  }
+});
+
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 app.get('/leaderboard', async (_req, res) => {
