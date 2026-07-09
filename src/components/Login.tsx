@@ -39,11 +39,16 @@ export default function Login({ onAuth }: Props) {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_SERVER_URL ?? 'http://localhost:3001'}/api/guest`,
-        { method: 'POST' }
-      );
-      if (!res.ok) throw new Error('Guest login failed');
+      const guestName = `Guest_${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+      const guestEmail = `guest_${Date.now()}@battleset.local`;
+      const guestPassword = Math.random().toString(36).substring(2, 15);
+
+      const { error: err } = await authClient.signUp.email({
+        name: guestName,
+        email: guestEmail,
+        password: guestPassword,
+      });
+      if (err) { setError(err.message ?? 'Guest login failed'); setLoading(false); return; }
       setLoading(false);
       onAuth();
     } catch (err) {
